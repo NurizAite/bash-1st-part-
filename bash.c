@@ -4,6 +4,8 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <signal.h>
 #define GREEN   "\x1b[32;1m"
 #define BLUE    "\x1b[34;1m"
 #define WHITE   "\x1b[0m"
@@ -321,7 +323,9 @@ void do_cmd(char ***cmd, int n) {
     }
 }
 
-
+void handler (int signo) {
+	
+}
 int main(void) {
     char ***cmd = NULL;
     int n = 0;
@@ -340,6 +344,7 @@ int main(void) {
             free_cmd(cmd);
             break;
         }
+	signal(SIGINT, handler);
         do_cmd(cmd, n);
         free_cmd(cmd);
     }
