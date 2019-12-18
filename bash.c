@@ -23,7 +23,7 @@ void print() {
 
 char *get_word(char *end) {
     char *word = NULL;
-    int i = 0, br = 0;
+    int i = 0, flag = 0;
     if (*end == '&') {
         bg = 1;
         read(0, end, 1);
@@ -48,7 +48,7 @@ char *get_word(char *end) {
         return word;
     }
     if (*end == '"') {
-            br = 2;
+            flag = 1;
             if (read(0, end, 1) < 0) {
                 perror("read");
                 free(word);
@@ -66,10 +66,10 @@ char *get_word(char *end) {
             }
     }
     while (1) {
-        if ((*end == ' ' || *end == '\n' || *end == '\t') && (br != 2)) {
+        if ((*end == ' ' || *end == '\n' || *end == '\t') && (flag != 2)) {
             break;
         }
-        if (*end == '"' && br == 2) {
+        if (*end == '"' && flag == 2) {
             *end = ' ';
             break;
         }
@@ -324,7 +324,7 @@ void do_cmd(char ***cmd, int n) {
 }
 
 void handler (int signo) {
-	
+	kill(signo, SIGINT);
 }
 int main(void) {
     char ***cmd = NULL;
@@ -344,8 +344,8 @@ int main(void) {
             free_cmd(cmd);
             break;
         }
-	signal(SIGINT, handler);
-        do_cmd(cmd, n);
+        signal(SIGINT, handler);
+	do_cmd(cmd, n);
         free_cmd(cmd);
     }
     return 0;
