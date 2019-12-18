@@ -288,8 +288,9 @@ void do_cmd(char ***cmd, int n) {
             if (i != n - 1) {
                 dup2(pipefd[i][1], 1);
             }
+            n --;
             for (int j = 0; j < i + 1; j++) {
-                if (j == n - 1) {
+                if (j == n) {
                     break;
                 }
                 close(pipefd[j][0]);
