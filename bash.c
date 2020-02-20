@@ -63,7 +63,7 @@ int no_pipes(char ***cmd) {
         fd2 = redir(cmd[0]);
         if (execvp(cmd[0][0], cmd[0]) < 0) {
                 free_cmd(cmd);
-                perror("exec failed");
+                perror("exec tr in no_pipes");
                 if (fd1 != 0 && fd1 != 1) {
                     close(fd1);
                 }
@@ -111,7 +111,7 @@ int pipes(char ***cmd, int n){
             }
             if (execvp(cmd[i][0], cmd[i]) < 0) {
                 free_cmd(cmd);
-                perror("exec failed");
+                perror("exec tr in pipes");
                       close(fd1);
                       close(fd2);
                 exit(1);
@@ -278,7 +278,7 @@ char ***get_cmd(int *n) {
     while (end != '\n') {
         cmd = (char ***)realloc(cmd, (i + 2) * sizeof(char **));
         if (cmd == NULL) {
-            perror("realloc char***");
+            perror("memory tr in get_cmd");
             return NULL;
         }
         cmd[i] = get_list(&end);
@@ -288,7 +288,7 @@ char ***get_cmd(int *n) {
             return NULL;
         }
         if (cmd[i] == NULL) {
-            perror("get_list");
+            perror("memory tr in get_list");
             free_cmd(cmd);
             return NULL;
         }
@@ -311,8 +311,8 @@ void free_list(char **list) {
 void del_word(char **cmd, int n) {
     char *word;
     while (cmd[n + 1] != NULL) {
-        printf("7%s7\n", cmd[n]);
-        printf("8%s8\n", cmd[n+1]);
+/*        printf("7%s7\n", cmd[n]);
+        printf("8%s8\n", cmd[n+1]);*/
         word = cmd[n];
         cmd[n] = cmd[n + 1];
         cmd[n + 1] = word;
@@ -367,7 +367,7 @@ int main(void) {
           continue;
         }
         if (cmd == NULL) {
-            perror("something went wrong");
+            perror("memory trouble");
             return 1;
         }
         if (strcmp(cmd[0][0], "quit") == 0 ||
