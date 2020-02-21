@@ -298,46 +298,47 @@ void free_list(char **list) {
     free(list);
 }
 
-void del_word(char **cmd, int n) {
-    char *word;
-    while (cmd[n + 1] != NULL) {
-/*        printf("7%s7\n", cmd[n]);
-        printf("8%s8\n", cmd[n+1]);*/
-        word = cmd[n];
-        cmd[n] = cmd[n + 1];
-        cmd[n + 1] = word;
-        n++;
+void check_descr(int fd) {
+    if (fd < 0) {
+        perror("file didn't open");
+        exit(1);
     }
-    free(cmd[n]);
-    free(cmd[n + 1]);
-    cmd[n] = NULL;
 }
-
 int change_dirn(char **cmd) {
     int fd;
     int i;
     for (i = 0; cmd[i] != NULL; i++) {
-        if (strcmp(cmd[i], ">") == 0) {
-            fd = open(cmd[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd < 0) {
-                perror("failed to open file after <");
-                exit(1);
-            }
-            dup2(fd, 1);
-            break;
-        } else if (strcmp(cmd[i], "<") == 0) {
+        if (strcmp(cmd[i], "<") == 0) {
             fd = open(cmd[i + 1], O_RDONLY);
-            if (fd < 0) {
-                perror("failed to open file after >");
-                exit(1);
-            }
+            check_descr(fd);
             dup2(fd, 0);
+            break;
+        }
+        else if (strcmp(cmd[i], ">") == 0) {
+            fd = open(cmd[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            check_descr(fd);
+            dup2(fd, 1);
             break;
         }
     }
     if (cmd[i] != NULL) {
-        del_word(cmd, i);
-        del_word(cmd, i);
+
+        int count = 2, j = i;
+        while (cmd[i + 1] != NULL && count != 0) {
+//        printf("7%s7\n", cmd[i]);
+  //      printf("8%s8\n", cmd[i + 1]);
+        char *tmp;
+        tmp = cmd[i];
+        cmd[i] = cmd[i + 1];
+        cmd[i + 1] = tmp;
+        i++;
+        if (cmd[i + 1] == NULL)
+            count--;
+        i = j;
+        }
+    free(cmd[i]);
+    free(cmd[i + 1]);
+    cmd[i] = NULL;
     }
     return fd;
 }
