@@ -57,18 +57,14 @@ int exec_cmd(char ***cmd, int n) {
 }
 
 int no_pipes(char ***cmd) {
-    int fd1, fd2;
+    int fd, fd1, fd2;
     if (fork() == 0) {
-        fd1 = redir(cmd[0]);
-        fd2 = redir(cmd[0]);
+        fd = change_dirn(cmd[0]);
         if (execvp(cmd[0][0], cmd[0]) < 0) {
                 free_cmd(cmd);
                 perror("exec tr in no_pipes");
-                if (fd1 != 0 && fd1 != 1) {
-                    close(fd1);
-                }
-                if (fd2 != 0 && fd2 != 1) {
-                    close(fd2);
+                if (fd != 0 && fd != 1) {
+                    close(fd);
                 }
                 exit(1);
             }
@@ -83,17 +79,15 @@ int no_pipes(char ***cmd) {
 }
 
 int pipes(char ***cmd, int n){
-    int fd1, fd2;
+    int fd;
     int pipefd[n - 1][2], pid;
     for (int i = 0; i < n; i++) {
         if (i != n - 1) {
             pipe(pipefd[i]);
         }
         if ((pid = fork()) == 0) {
-            if (i == 0) {
-                fd1 = redir(cmd[i]);
-            } else if (i == n - 1) {
-                fd2 = redir(cmd[i]);
+            if (i == 0 || i == n - 1) {
+                fd = change_dirn(cmd[i]);
             }
             if (i != 0) {
                 dup2(pipefd[i - 1][0], 0);
@@ -112,8 +106,7 @@ int pipes(char ***cmd, int n){
             if (execvp(cmd[i][0], cmd[i]) < 0) {
                 free_cmd(cmd);
                 perror("exec tr in pipes");
-                      close(fd1);
-                      close(fd2);
+                      close(fd);
                 exit(1);
             }
         }
@@ -125,11 +118,8 @@ int pipes(char ***cmd, int n){
       }
       wait(NULL);
     }
-    if (fd1 != 0 && fd1 != 1) {
-        close(fd1);
-    }
-    if (fd2 != 0 && fd2 != 1) {
-        close(fd2);
+    if (fd != 0 && fd != 1) {
+        close(fd);
     }
 
 }
@@ -323,7 +313,7 @@ void del_word(char **cmd, int n) {
     cmd[n] = NULL;
 }
 
-int redir(char **cmd) {
+int change_dirn(char **cmd) {
     int fd;
     int i;
     for (i = 0; cmd[i] != NULL; i++) {
