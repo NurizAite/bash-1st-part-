@@ -1,10 +1,10 @@
 # Welcome to Bash!
 
-* Lexems
-* Run
+* Parsing lexems
+* Running
 * Redirection
 * Pipe
-* Pipe n
+* Pipe for n elements
 * Background mode
 * Changing of directory
 * Ctrl + C
