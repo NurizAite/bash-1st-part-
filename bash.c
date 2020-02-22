@@ -10,7 +10,7 @@
 #define BLUE    "\x1b[34;1m"
 #define WHITE   "\x1b[0m"
 
-int bg = 0;
+int bg = 0, pid;
 
 void change_dir(char ***cmd, int n) {
     char dir[256];
@@ -28,7 +28,7 @@ void change_dir(char ***cmd, int n) {
 
 }
 
-void print() {
+void print_dir() {
   const char* pwd = getenv("PWD");
   const char* user = getenv("USER");
   char host[256], dir[256];
@@ -56,9 +56,65 @@ int exec_cmd(char ***cmd, int n) {
     return 0;
 }
 
+void free_list(char **list) {
+    for (int i = 0; list[i] != NULL; i++) {
+        free(list[i]);
+    }
+    free(list);
+}
+
+void check_descr(int fd) {
+    if (fd < 0) {
+        perror("file didn't open");
+        exit(1);
+    }
+}
+int change_dirn(char **cmd) {
+    int fd;
+    int i;
+    for (i = 0; cmd[i] != NULL; i++) {
+        if (strcmp(cmd[i], "<") == 0) {
+            fd = open(cmd[i + 1], O_RDONLY);
+            check_descr(fd);
+            dup2(fd, 0);
+            break;
+        }
+        else if (strcmp(cmd[i], ">") == 0) {
+            fd = open(cmd[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            check_descr(fd);
+            dup2(fd, 1);
+            break;
+        }
+    }
+    if (cmd[i] != NULL) {
+
+        int count = 2, j = i;
+        while (cmd[i + 1] != NULL && count != 0) {
+//        printf("7%s7\n", cmd[i]);
+  //      printf("8%s8\n", cmd[i + 1]);
+        char *tmp;
+        tmp = cmd[i];
+        cmd[i] = cmd[i + 1];
+        cmd[i + 1] = tmp;
+        i++;
+        if (cmd[i + 1] == NULL)
+            count--;
+        i = j;
+        }
+    free(cmd[i]);
+    free(cmd[i + 1]);
+    cmd[i] = NULL;
+    }
+    return fd;
+}
+
+
+void handler (int signo) {
+    kill(pid, SIGINT);
+}
 int no_pipes(char ***cmd) {
-    int fd, fd1, fd2;
-    if (fork() == 0) {
+    int fd;
+    if ((pid = fork()) == 0) {
         fd = change_dirn(cmd[0]);
         if (execvp(cmd[0][0], cmd[0]) < 0) {
                 free_cmd(cmd);
@@ -80,7 +136,7 @@ int no_pipes(char ***cmd) {
 
 int pipes(char ***cmd, int n){
     int fd;
-    int pipefd[n - 1][2], pid;
+    int pipefd[n - 1][2];
     for (int i = 0; i < n; i++) {
         if (i != n - 1) {
             pipe(pipefd[i]);
@@ -291,68 +347,13 @@ char ***get_cmd(int *n) {
     return cmd;
 }
 
-void free_list(char **list) {
-    for (int i = 0; list[i] != NULL; i++) {
-        free(list[i]);
-    }
-    free(list);
-}
 
-void check_descr(int fd) {
-    if (fd < 0) {
-        perror("file didn't open");
-        exit(1);
-    }
-}
-int change_dirn(char **cmd) {
-    int fd;
-    int i;
-    for (i = 0; cmd[i] != NULL; i++) {
-        if (strcmp(cmd[i], "<") == 0) {
-            fd = open(cmd[i + 1], O_RDONLY);
-            check_descr(fd);
-            dup2(fd, 0);
-            break;
-        }
-        else if (strcmp(cmd[i], ">") == 0) {
-            fd = open(cmd[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            check_descr(fd);
-            dup2(fd, 1);
-            break;
-        }
-    }
-    if (cmd[i] != NULL) {
-
-        int count = 2, j = i;
-        while (cmd[i + 1] != NULL && count != 0) {
-//        printf("7%s7\n", cmd[i]);
-  //      printf("8%s8\n", cmd[i + 1]);
-        char *tmp;
-        tmp = cmd[i];
-        cmd[i] = cmd[i + 1];
-        cmd[i + 1] = tmp;
-        i++;
-        if (cmd[i + 1] == NULL)
-            count--;
-        i = j;
-        }
-    free(cmd[i]);
-    free(cmd[i + 1]);
-    cmd[i] = NULL;
-    }
-    return fd;
-}
-
-
-void handler (int signo) {
-	kill(signo, SIGINT);
-}
 
 int main(void) {
     char ***cmd = NULL;
     int n = 0;
     while (1) {
-        print();
+        print_dir();
         cmd = get_cmd(&n);
         if (n == -1) {
           continue;
