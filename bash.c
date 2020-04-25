@@ -87,7 +87,6 @@ int change_dirn(char **cmd) {
         }
     }
     if (cmd[i] != NULL) {
-
         int count = 2, j = i;
         while (cmd[i + 1] != NULL && count != 0) {
 //        printf("7%s7\n", cmd[i]);
@@ -112,6 +111,7 @@ int change_dirn(char **cmd) {
 void handler (int signo) {
     kill(pid, SIGINT);
 }
+
 int no_pipes(char ***cmd) {
     int fd;
     if ((pid = fork()) == 0) {
@@ -134,7 +134,7 @@ int no_pipes(char ***cmd) {
 
 }
 
-int pipes(char ***cmd, int n){
+int pipes(char ***cmd, int n) {
     int fd;
     int pipefd[n - 1][2];
     for (int i = 0; i < n; i++) {
